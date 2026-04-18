@@ -16,7 +16,7 @@ s3 = boto3.client("s3")
 textract = boto3.client("textract", region_name=os.environ["AWS_REGION"])
 
 OUTPUT_BUCKET = os.environ["OUTPUT_BUCKET"]
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-5-haiku-20241022-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-3-5-haiku-20241022-v1:0")
 
 CLASSIFICATIONS_PATH = os.path.join(os.path.dirname(__file__), "classifications.json")
 with open(CLASSIFICATIONS_PATH) as f:

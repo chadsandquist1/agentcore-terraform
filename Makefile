@@ -51,11 +51,20 @@ build-agent:
 	@echo "Done: $(BUILD_DIR)/agent.zip"
 
 test-upload:
-	@[ "$(FILE)" ] || { echo "Usage: make test-upload FILE=my_receipt.jpg"; exit 1; }
+	@[ "$(FILE)" ] || { echo "Usage: make test-upload FILE=path/to/receipt.jpg|.heic"; exit 1; }
 	$(eval ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text))
 	$(eval BUCKET := mojodojo-receipt-classifier-$(ACCOUNT_ID)-input)
-	$(eval KEY := uploads/$(notdir $(FILE)))
-	aws s3 cp $(FILE) s3://$(BUCKET)/$(KEY)
+	$(eval UPLOAD_FILE := $(shell \
+		ext=$$(echo "$(FILE)" | sed 's/.*\.//'); \
+		if [ "$${ext,,}" = "heic" ]; then \
+			out=/tmp/$$(basename "$(FILE)" .$$ext).jpg; \
+			sips -s format jpeg "$(FILE)" --out "$$out" >/dev/null; \
+			echo "$$out"; \
+		else \
+			echo "$(FILE)"; \
+		fi))
+	$(eval KEY := uploads/$(notdir $(UPLOAD_FILE)))
+	aws s3 cp "$(UPLOAD_FILE)" s3://$(BUCKET)/$(KEY)
 	@echo "Uploaded to s3://$(BUCKET)/$(KEY)"
 	@echo "Tailing logs (Ctrl+C to stop):"
 	aws logs tail /aws/lambda/receipt-classifier-processor --follow --format short

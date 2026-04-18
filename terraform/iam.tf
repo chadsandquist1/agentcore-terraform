@@ -57,10 +57,12 @@ data "aws_iam_policy_document" "lambda_permissions" {
   statement {
     sid     = "Bedrock"
     effect  = "Allow"
-    actions = ["bedrock:InvokeModel"]
+    actions = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
 
     resources = [
-      "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}",
+      "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
+      "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0",
+      "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
     ]
   }
 }
@@ -110,10 +112,12 @@ data "aws_iam_policy_document" "agentcore_permissions" {
   statement {
     sid     = "Bedrock"
     effect  = "Allow"
-    actions = ["bedrock:InvokeModel"]
+    actions = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
 
     resources = [
-      "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}",
+      "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
+      "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.anthropic.claude-3-5-haiku-20241022-v1:0",
+      "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
     ]
   }
 }
