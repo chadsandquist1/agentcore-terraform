@@ -97,7 +97,9 @@ def classify_receipt(bucket: str, key: str) -> dict:
 
     # Parse the JSON response
     try:
-        clean = raw_content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        import re
+        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_content, re.DOTALL)
+        clean = match.group(1) if match else raw_content.strip()
         result = json.loads(clean)
 
         # Normalize category to a list
