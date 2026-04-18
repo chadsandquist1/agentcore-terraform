@@ -1,0 +1,44 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+terraform/terraform.tfvars
+terraform/environments/
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Build artifacts
+build/
+lambda/layer/
+agent/build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+.venv/
+venv/
+env/
+
+# AWS credentials (never commit these)
+.aws/
+*.credentials
+credentials
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
