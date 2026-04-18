@@ -79,9 +79,11 @@ def classify_receipt(bucket: str, key: str) -> dict:
         clean = raw_content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         result = json.loads(clean)
         if result.get("category") not in CATEGORIES:
-            result["category"] = "Other"
+            logger.warning("Model returned unknown category: %s", result.get("category"))
     except (json.JSONDecodeError, AttributeError):
-        result = {"category": "Other", "reasoning": "Failed to parse model response."}
+        result = {"category": "Error", "reasoning": "Failed to parse model response."}
+
+    logger.info("Classification result category: %s", result.get("category"))
 
     return result
 
