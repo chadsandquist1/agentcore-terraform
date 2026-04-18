@@ -53,12 +53,12 @@ Remote state stored in S3. Bootstrap with `../scripts/bootstrap_state.sh` before
 - `s3:GetObject` on input bucket
 - `s3:PutObject` on output bucket
 - `textract:DetectDocumentText`
-- `bedrock:InvokeModel` for `anthropic.claude-3-5-haiku-20241022-v1:0`
+- `bedrock:InvokeModel` for `anthropic.claude-haiku-4-5-20251001-v1:0`
 - `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`
 
 **AgentCore role** needs:
 - `s3:GetObject` on agent-code bucket
-- `bedrock:InvokeModel` for `anthropic.claude-3-5-haiku-20241022-v1:0`
+- `bedrock:InvokeModel` for `anthropic.claude-haiku-4-5-20251001-v1:0`
 - `textract:DetectDocumentText`
 
 ## Common Commands

@@ -46,6 +46,6 @@ Key packages: `langchain`, `langchain-aws`, `boto3`
 | Variable | Value |
 |---|---|
 | `OUTPUT_BUCKET` | S3 output bucket name |
-| `BEDROCK_MODEL_ID` | `anthropic.claude-3-5-haiku-20241022-v1:0` |
+| `BEDROCK_MODEL_ID` | `anthropic.claude-haiku-4-5-20251001-v1:0` |
 | `AWS_REGION` | `us-east-1` |
 | `LOG_GROUP` | CloudWatch log group name |

@@ -55,8 +55,8 @@ test-upload:
 	$(eval ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text))
 	$(eval BUCKET := mojodojo-receipt-classifier-$(ACCOUNT_ID)-input)
 	$(eval UPLOAD_FILE := $(shell \
-		ext=$$(echo "$(FILE)" | sed 's/.*\.//'); \
-		if [ "$${ext,,}" = "heic" ]; then \
+		ext=$$(echo "$(FILE)" | sed 's/.*\.//' | tr '[:upper:]' '[:lower:]'); \
+		if [ "$$ext" = "heic" ]; then \
 			out=/tmp/$$(basename "$(FILE)" .$$ext).jpg; \
 			sips -s format jpeg "$(FILE)" --out "$$out" >/dev/null; \
 			echo "$$out"; \

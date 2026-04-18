@@ -7,7 +7,7 @@ Serverless AWS pipeline that classifies receipt images via OCR. JPG uploaded to 
 - **Python 3.12** — Lambda + AgentCore agent
 - **LangChain / langchain-aws** — agent orchestration, tool calling
 - **AWS Textract** — OCR (synchronous, single-page JPG only)
-- **Bedrock** — `anthropic.claude-3-5-haiku-20241022-v1:0`
+- **Bedrock** — `anthropic.claude-haiku-4-5-20251001-v1:0`
 - **AgentCore Runtime** — alternate hosted execution path (ARM64/Graviton)
 - **Terraform >= 1.0, AWS provider >= 6.22.0** — all infra as code
 - **GitHub Actions** — CI/CD (build artifacts → terraform apply)
@@ -115,6 +115,6 @@ Keeps Terraform state clean and separates build concerns from infrastructure sta
 ## Prerequisites (First Run Only)
 
 1. `./scripts/bootstrap_state.sh` — creates S3 state bucket + DynamoDB lock table
-2. AWS console (us-east-1) → Bedrock → enable model access for `anthropic.claude-3-5-haiku-20241022-v1:0`
+2. AWS console (us-east-1) → Bedrock → enable model access for `anthropic.claude-haiku-4-5-20251001-v1:0`
 3. GitHub → Settings → Secrets: add `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 4. `make build` — cross-compile and package all deployment artifacts
