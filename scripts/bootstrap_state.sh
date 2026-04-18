@@ -155,10 +155,16 @@ PERMISSIONS_POLICY=$(cat <<EOF
       "Resource": "arn:aws:iam::${ACCOUNT_ID}:role/mojodojo-receipt-classifier-*"
     },
     {
+      "Sid": "CloudWatchDescribe",
+      "Effect": "Allow",
+      "Action": ["logs:DescribeLogGroups"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT_ID}:*"
+    },
+    {
       "Sid": "CloudWatch",
       "Effect": "Allow",
       "Action": ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:PutRetentionPolicy",
-                 "logs:DescribeLogGroups", "logs:ListTagsLogGroup", "logs:TagLogGroup",
+                 "logs:ListTagsLogGroup", "logs:TagLogGroup",
                  "logs:UntagLogGroup", "logs:ListTagsForResource", "logs:TagResource",
                  "logs:UntagResource"],
       "Resource": "arn:aws:logs:${REGION}:${ACCOUNT_ID}:log-group:/aws/lambda/receipt-classifier-*"
@@ -175,19 +181,19 @@ EOF
 )
 
 if aws iam get-role --role-name "${ROLE_NAME}" 2>/dev/null; then
-  echo "  IAM role '${ROLE_NAME}' already exists — skipping"
+  echo "  IAM role '${ROLE_NAME}' already exists — updating policy"
 else
   aws iam create-role \
     --role-name "${ROLE_NAME}" \
     --assume-role-policy-document "${TRUST_POLICY}"
-
-  aws iam put-role-policy \
-    --role-name "${ROLE_NAME}" \
-    --policy-name "${ROLE_NAME}-policy" \
-    --policy-document "${PERMISSIONS_POLICY}"
-
   echo "  Created IAM role '${ROLE_NAME}'"
 fi
+
+aws iam put-role-policy \
+  --role-name "${ROLE_NAME}" \
+  --policy-name "${ROLE_NAME}-policy" \
+  --policy-document "${PERMISSIONS_POLICY}"
+echo "  Applied permissions policy to '${ROLE_NAME}'"
 
 ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
 
