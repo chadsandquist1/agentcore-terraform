@@ -106,8 +106,13 @@ def classify_receipt(bucket: str, key: str) -> dict:
             raw_cats = [raw_cats]
         valid = [c for c in raw_cats if c in CATEGORIES]
         result["category"] = valid if valid else ["Other"]
-    except (json.JSONDecodeError, AttributeError):
-        result = {"category": ["Other"], "reasoning": "Failed to parse model response."}
+    except (json.JSONDecodeError, AttributeError) as e:
+        logger.error(json.dumps({
+            "event": "PARSE_ERROR",
+            "error": str(e),
+            "raw_content": raw_content,
+        }))
+        result = {"category": ["Other"], "reasoning": f"Failed to parse model response: {e}. Raw: {raw_content}"}
 
     logger.info(json.dumps({
         "event": "CLASSIFICATION_RESULT",

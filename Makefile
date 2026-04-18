@@ -69,6 +69,15 @@ test-upload:
 	@echo ""
 	@echo "To view logs:"
 	@echo "  aws logs tail /aws/lambda/receipt-classifier-processor --since 5m --format short"
+	@echo ""
+	@echo "To view latest classification result:"
+	@echo "  make show-results"
+
+show-results:
+	$(eval ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text))
+	$(eval LATEST := $(shell aws s3 ls s3://mojodojo-receipt-classifier-$(ACCOUNT_ID)-output/results/ | sort | tail -1 | awk '{print $$4}'))
+	@[ "$(LATEST)" ] || { echo "No results found in output bucket yet."; exit 1; }
+	aws s3 cp s3://mojodojo-receipt-classifier-$(ACCOUNT_ID)-output/results/$(LATEST) - | python3 -m json.tool
 
 clean:
 	rm -rf $(LAYER_BUILD) $(AGENT_BUILD) $(BUILD_DIR)
