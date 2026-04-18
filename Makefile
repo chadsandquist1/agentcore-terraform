@@ -1,7 +1,10 @@
-SHELL := /bin/bash
-BUILD_DIR  := build
+SHELL  := /bin/bash
+BUILD_DIR   := build
 LAYER_BUILD := lambda/layer
 AGENT_BUILD := agent/build
+
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
 
 .PHONY: build build-layer build-agent test-upload clean
 
@@ -12,12 +15,22 @@ build-layer:
 	mkdir -p $(LAYER_BUILD)/python $(BUILD_DIR)
 	uv export --group lambda --frozen --no-hashes --no-emit-project \
 		-o /tmp/lambda-reqs.txt
+ifeq ($(UNAME_S)$(UNAME_M),Linuxx86_64)
+	@echo "  Native Linux x86_64 install"
+	pip install \
+		--python-version 312 \
+		--only-binary :all: \
+		--target $(LAYER_BUILD)/python \
+		-r /tmp/lambda-reqs.txt
+else
+	@echo "  Cross-compiling for Linux x86_64 from $(UNAME_S)/$(UNAME_M)"
 	pip install \
 		--platform manylinux2014_x86_64 \
 		--python-version 312 \
 		--only-binary :all: \
 		--target $(LAYER_BUILD)/python \
 		-r /tmp/lambda-reqs.txt
+endif
 	cd $(LAYER_BUILD) && zip -r ../../$(BUILD_DIR)/lambda_layer.zip python/
 	@echo "Done: $(BUILD_DIR)/lambda_layer.zip"
 

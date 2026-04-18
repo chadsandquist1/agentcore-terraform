@@ -16,6 +16,7 @@ lambda = [
     "langchain==0.3.25",
     "langchain-aws==0.2.14",
     "numpy>=1.26.0,<2.3",
+    "greenlet>=3.0.0,<3.3",
 ]
 agent = [
     "boto3==1.38.0",
@@ -24,4 +25,5 @@ agent = [
     "langchain-aws==0.2.14",
     "uvicorn==0.34.2",
     "numpy>=1.26.0,<2.3",
+    "greenlet>=3.0.0,<3.3",
 ]
