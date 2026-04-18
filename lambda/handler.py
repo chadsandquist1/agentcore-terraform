@@ -72,8 +72,9 @@ def classify_receipt(bucket: str, key: str) -> dict:
         messages.append(response)
         messages.append(ToolMessage(content=text, tool_call_id=tool_call["id"]))
 
-        # Re-invoke without tools for final classification
-        final = llm.invoke(messages)
+        # Re-invoke with tools still bound — Bedrock requires toolConfig when
+        # the message history contains toolUse/toolResult blocks
+        final = llm_with_tools.invoke(messages)
         raw_content = final.content
     else:
         raw_content = response.content

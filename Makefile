@@ -66,8 +66,9 @@ test-upload:
 	$(eval KEY := uploads/$(notdir $(UPLOAD_FILE)))
 	aws s3 cp "$(UPLOAD_FILE)" s3://$(BUCKET)/$(KEY)
 	@echo "Uploaded to s3://$(BUCKET)/$(KEY)"
-	@echo "Tailing logs (Ctrl+C to stop):"
-	aws logs tail /aws/lambda/receipt-classifier-processor --follow --format short
+	@echo ""
+	@echo "To view logs:"
+	@echo "  aws logs tail /aws/lambda/receipt-classifier-processor --since 5m --format short"
 
 clean:
 	rm -rf $(LAYER_BUILD) $(AGENT_BUILD) $(BUILD_DIR)
