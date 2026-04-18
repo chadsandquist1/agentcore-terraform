@@ -1,1 +1,27 @@
-["Food", "Shoes", "Clothes", "Household", "Liquor", "Mix", "Other", "Not Receipt"]
+[
+  "Groceries",
+  "Restaurant",
+  "Fast Food",
+  "Coffee & Cafe",
+  "Alcohol & Bar",
+  "Health & Pharmacy",
+  "Fitness & Sports",
+  "Clothing & Apparel",
+  "Shoes & Footwear",
+  "Electronics",
+  "Home & Hardware",
+  "Furniture & Appliances",
+  "Auto & Gas",
+  "Travel & Lodging",
+  "Entertainment",
+  "Beauty & Personal Care",
+  "Pet Supplies",
+  "Office & Stationery",
+  "Gifts & Flowers",
+  "Charity & Donations",
+  "Childcare & Education",
+  "Utilities & Subscriptions",
+  "Mix",
+  "Other",
+  "Not Receipt"
+]
