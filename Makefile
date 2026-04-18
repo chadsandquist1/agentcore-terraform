@@ -12,9 +12,9 @@ build-layer:
 	mkdir -p $(LAYER_BUILD)/python $(BUILD_DIR)
 	uv export --group lambda --frozen --no-hashes --no-emit-project \
 		-o /tmp/lambda-reqs.txt
-	uv pip install \
-		--python 3.12 \
+	pip install \
 		--platform manylinux2014_x86_64 \
+		--python-version 312 \
 		--only-binary :all: \
 		--target $(LAYER_BUILD)/python \
 		-r /tmp/lambda-reqs.txt
@@ -26,9 +26,9 @@ build-agent:
 	mkdir -p $(AGENT_BUILD) $(BUILD_DIR)
 	uv export --group agent --frozen --no-hashes --no-emit-project \
 		-o /tmp/agent-reqs.txt
-	uv pip install \
-		--python 3.12 \
-		--platform aarch64-manylinux2014 \
+	pip install \
+		--platform manylinux2014_aarch64 \
+		--python-version 312 \
 		--only-binary :all: \
 		--target $(AGENT_BUILD) \
 		-r /tmp/agent-reqs.txt

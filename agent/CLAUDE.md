@@ -35,7 +35,7 @@ starts this server, handles the request, then tears it down. Cost is ~$0 when id
 
 Installed with:
 ```
-pip install --platform aarch64-manylinux2014 --only-binary=:all: --target ./build -r requirements.txt
+pip install --platform manylinux2014_aarch64 --only-binary=:all: --target ./build -r requirements.txt
 ```
 
 Key packages: `langchain`, `langchain-aws`, `fastapi`, `uvicorn`, `boto3`
