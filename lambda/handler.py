@@ -42,11 +42,20 @@ def extract_text_with_textract(bucket: str, key: str) -> str:
     response = textract.detect_document_text(
         Document={"S3Object": {"Bucket": bucket, "Name": key}}
     )
-    lines = [
-        block["Text"]
-        for block in response["Blocks"]
-        if block["BlockType"] == "LINE"
-    ]
+    line_blocks = [b for b in response["Blocks"] if b["BlockType"] == "LINE"]
+    lines = [b["Text"] for b in line_blocks]
+    avg_confidence = (
+        sum(b.get("Confidence", 0) for b in line_blocks) / len(line_blocks)
+        if line_blocks else 0
+    )
+    logger.info(json.dumps({
+        "event": "TEXTRACT_RESULT",
+        "bucket": bucket,
+        "key": key,
+        "line_count": len(lines),
+        "avg_confidence": round(avg_confidence, 2),
+        "lines": lines,
+    }))
     return "\n".join(lines) if lines else "[No text detected]"
 
 
