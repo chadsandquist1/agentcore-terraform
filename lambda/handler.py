@@ -23,17 +23,21 @@ with open(CLASSIFICATIONS_PATH) as f:
     CATEGORIES = json.load(f)
 
 SYSTEM_PROMPT = f"""You are a receipt classification assistant.
-Given the text extracted from a receipt image, classify it into exactly one of these categories:
+Given the text extracted from a receipt image, classify it into exactly one or many of these categories:
 {json.dumps(CATEGORIES)}
 
-Rules:
-- Return ONLY a JSON object with two keys: "category" and "reasoning"
-- "category" must be exactly one of the values listed above — no variations
-- "reasoning" should be one concise sentence
-- If the text does not appear to be a receipt, use "Not Receipt"
-- If the receipt spans multiple categories, use "Mix"
+Return **only** a JSON object with exactly two keys:
 
-Example: {{"category": "Food", "reasoning": "The receipt shows a restaurant purchase with food and beverage items."}}"""
+- **`category`** — one or more values from the allowed categories list; no variations or custom values
+- **`reasoning`** — one concise sentence explaining why the category or categories were selected.  Choose keywords from the text to support your reasoning.
+
+**Classification rules:**
+1. If the text is not a receipt, use `"Not Receipt"`.
+2. If the receipt spans multiple categories, include all that apply.
+3. When in doubt, prefer a specific category over a general one — e.g., if grocery items are present, include `"Groceries"` even if other categories also apply.
+4. Use `"Other"` only as a last resort when no other category reasonably fits.
+
+Example: {{"category": ["Restaurant"], "reasoning": "The receipt shows a restaurant purchase with food and beverage items."}}"""
 
 
 @tool
@@ -90,13 +94,17 @@ def classify_receipt(bucket: str, key: str) -> dict:
 
     # Parse the JSON response
     try:
-        # Strip markdown code fences if present
         clean = raw_content.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         result = json.loads(clean)
-        if result.get("category") not in CATEGORIES:
-            result["category"] = "Other"
+
+        # Normalize category to a list
+        raw_cats = result.get("category", [])
+        if isinstance(raw_cats, str):
+            raw_cats = [raw_cats]
+        valid = [c for c in raw_cats if c in CATEGORIES]
+        result["category"] = valid if valid else ["Other"]
     except (json.JSONDecodeError, AttributeError):
-        result = {"category": "Other", "reasoning": "Failed to parse model response."}
+        result = {"category": ["Other"], "reasoning": "Failed to parse model response."}
 
     return result
 
@@ -125,7 +133,7 @@ def handler(event, context):
             "source_bucket": bucket,
             "source_key": key,
             "timestamp": timestamp,
-            "category": result["category"],
+            "categories": result["category"],
             "reasoning": result.get("reasoning", ""),
         }
 
@@ -139,7 +147,7 @@ def handler(event, context):
         logger.info(json.dumps({
             "event": "RECEIPT_CLASSIFICATION",
             "key": key,
-            "category": result["category"],
+            "categories": result["category"],
             "output_key": output_key,
             "timestamp": timestamp,
         }))
