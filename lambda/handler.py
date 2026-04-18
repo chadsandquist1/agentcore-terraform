@@ -75,22 +75,25 @@ def classify_receipt(bucket: str, key: str) -> dict:
         HumanMessage(content=f"Extract and classify the receipt at s3://{bucket}/{key}"),
     ]
 
+    logger.info(json.dumps({"event": "LLM_INVOKE_START", "bucket": bucket, "key": key, "model": MODEL_ID}))
     response = llm_with_tools.invoke(messages)
 
     # Handle tool call if the model chose to use it
     if hasattr(response, "tool_calls") and response.tool_calls:
         from langchain_core.messages import ToolMessage
         tool_call = response.tool_calls[0]
+        logger.info(json.dumps({"event": "TOOL_CALL", "tool": tool_call["name"], "args": tool_call["args"]}))
         text = extract_text_with_textract.invoke(tool_call["args"])
         messages.append(response)
         messages.append(ToolMessage(content=text, tool_call_id=tool_call["id"]))
 
-        # Re-invoke with tools still bound — Bedrock requires toolConfig when
-        # the message history contains toolUse/toolResult blocks
+        logger.info(json.dumps({"event": "LLM_INVOKE_FINAL", "bucket": bucket, "key": key}))
         final = llm_with_tools.invoke(messages)
         raw_content = final.content
     else:
         raw_content = response.content
+
+    logger.info(json.dumps({"event": "LLM_RAW_RESPONSE", "bucket": bucket, "key": key, "response": raw_content}))
 
     # Parse the JSON response
     try:
@@ -106,6 +109,13 @@ def classify_receipt(bucket: str, key: str) -> dict:
     except (json.JSONDecodeError, AttributeError):
         result = {"category": ["Other"], "reasoning": "Failed to parse model response."}
 
+    logger.info(json.dumps({
+        "event": "CLASSIFICATION_RESULT",
+        "bucket": bucket,
+        "key": key,
+        "categories": result["category"],
+        "reasoning": result.get("reasoning", ""),
+    }))
     return result
 
 
