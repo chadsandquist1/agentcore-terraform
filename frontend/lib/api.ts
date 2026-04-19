@@ -7,7 +7,7 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+const API = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 export async function presign(filename: string): Promise<PresignResponse> {
   const headers = await authHeaders();
