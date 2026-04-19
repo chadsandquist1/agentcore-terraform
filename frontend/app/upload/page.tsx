@@ -17,13 +17,18 @@ function formatTime(d: Date): string {
 
 export default function UploadPage() {
   const [items, setItems] = useState<Item[]>([]);
+
+  // current upload state
   const [isBusy, setIsBusy] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | undefined>();
   const [currentFile, setCurrentFile] = useState<string>('');
   const [currentCategories, setCurrentCategories] = useState<string[]>([]);
-  const [currentDesc, setCurrentDesc] = useState('');
+  const [currentReasoning, setCurrentReasoning] = useState('');
   const [classifying, setClassifying] = useState(false);
   const [hasFile, setHasFile] = useState(false);
+
+  // history viewing state
+  const [viewingItem, setViewingItem] = useState<Item | null>(null);
 
   useEffect(() => {
     setItems(loadItems());
@@ -33,20 +38,23 @@ export default function UploadPage() {
     setPreviewSrc(undefined);
     setCurrentFile('');
     setCurrentCategories([]);
-    setCurrentDesc('');
+    setCurrentReasoning('');
     setIsBusy(false);
     setClassifying(false);
     setHasFile(false);
   }, []);
 
   const handleFile = useCallback(async (file: File) => {
+    // leaving history view when a new file is dropped
+    setViewingItem(null);
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       const src = e.target?.result as string;
       setPreviewSrc(src);
       setCurrentFile(file.name);
       setCurrentCategories([]);
-      setCurrentDesc('');
+      setCurrentReasoning('');
       setClassifying(true);
       setIsBusy(true);
       setHasFile(true);
@@ -58,10 +66,10 @@ export default function UploadPage() {
 
         const cats: string[] = result.categories
           ?? (result.category ? [result.category] : ['Not able to classify']);
-        const desc = result.description ?? '';
+        const reasoning = result.reasoning ?? '';
 
         setCurrentCategories(cats);
-        setCurrentDesc(desc);
+        setCurrentReasoning(reasoning);
         setClassifying(false);
         setIsBusy(false);
 
@@ -69,7 +77,7 @@ export default function UploadPage() {
           key,
           name: file.name,
           categories: cats,
-          description: desc,
+          reasoning,
           src,
           time: formatTime(new Date()),
         };
@@ -81,7 +89,7 @@ export default function UploadPage() {
       } catch (err) {
         console.error(err);
         setCurrentCategories(['Not able to classify']);
-        setCurrentDesc('Classification failed. Please try again.');
+        setCurrentReasoning('Classification failed. Please try again.');
         setClassifying(false);
         setIsBusy(false);
       }
@@ -89,7 +97,29 @@ export default function UploadPage() {
     reader.readAsDataURL(file);
   }, []);
 
-  const chipLabel = classifying ? 'Classifying…' : undefined;
+  const handleSelectHistory = useCallback((item: Item) => {
+    setViewingItem(item);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setViewingItem(null);
+  }, []);
+
+  const handleDelete = useCallback((key: string) => {
+    setItems(prev => {
+      const next = prev.filter(i => i.key !== key);
+      saveItems(next);
+      return next;
+    });
+    setViewingItem(prev => (prev?.key === key ? null : prev));
+  }, []);
+
+  // what the dropzone / caption shows depends on whether we're viewing history
+  const displaySrc = viewingItem ? viewingItem.src : previewSrc;
+  const displayCategories = viewingItem ? viewingItem.categories : currentCategories;
+  const displayReasoning = viewingItem ? viewingItem.reasoning : currentReasoning;
+  const displayFile = viewingItem ? viewingItem.name : currentFile;
+  const isClassifying = !viewingItem && classifying;
 
   return (
     <main className={styles.page}>
@@ -103,33 +133,46 @@ export default function UploadPage() {
       </header>
 
       <section className={styles.card} aria-label="Upload receipt">
-        <Dropzone onFile={handleFile} isBusy={isBusy} previewSrc={previewSrc} />
+        <Dropzone
+          onFile={handleFile}
+          isBusy={isBusy}
+          previewSrc={displaySrc}
+          readOnly={!!viewingItem}
+        />
 
         <div className={styles.caption}>
           <div className={styles.captionLeft}>
             <div className={styles.captionRow} aria-live="polite">
-              {classifying ? (
+              {isClassifying ? (
                 <Chip empty label="Classifying…" />
-              ) : currentCategories.length > 0 ? (
-                currentCategories.map(cat => <Chip key={cat} category={cat} />)
+              ) : displayCategories.length > 0 ? (
+                displayCategories.map(cat => <Chip key={cat} category={cat} />)
               ) : (
                 <Chip empty />
               )}
-              {currentFile && (
-                <span className={`${styles.fname} mono`}>{currentFile}</span>
+              {displayFile && (
+                <span className={`${styles.fname} mono`}>{displayFile}</span>
               )}
             </div>
-            {currentDesc && (
-              <div className={styles.desc}>{currentDesc}</div>
+            {displayReasoning && (
+              <div className={styles.desc}>{displayReasoning}</div>
             )}
           </div>
-          {hasFile && (
+
+          {viewingItem ? (
+            <button className={styles.btnBack} onClick={handleBack}>← Back</button>
+          ) : hasFile ? (
             <button className={styles.btnClear} onClick={reset}>Clear</button>
-          )}
+          ) : null}
         </div>
       </section>
 
-      <HistoryList items={items} />
+      <HistoryList
+        items={items}
+        selectedKey={viewingItem?.key}
+        onSelect={handleSelectHistory}
+        onDelete={handleDelete}
+      />
 
       <p className={`${styles.footnote} mono`}>proof of concept · v0.1</p>
     </main>

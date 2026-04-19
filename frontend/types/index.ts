@@ -4,7 +4,7 @@ export interface Item {
   key: string;
   name: string;
   categories: string[];
-  description: string;
+  reasoning: string;
   src: string;
   time: string;
 }
@@ -12,7 +12,7 @@ export interface Item {
 export interface ApiResult {
   category?: string;
   categories?: string[];
-  description?: string;
+  reasoning?: string;
   confidence?: number;
 }
 

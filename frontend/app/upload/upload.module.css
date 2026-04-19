@@ -96,6 +96,24 @@
   line-height: 1.4;
 }
 
+.btnBack {
+  font: inherit;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btnBack:hover {
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+
 .btnClear {
   font: inherit;
   font-size: 12px;

@@ -69,7 +69,7 @@ resource "aws_apigatewayv2_route" "presign" {
 
 resource "aws_apigatewayv2_route" "results" {
   api_id             = aws_apigatewayv2_api.receipt.id
-  route_key          = "GET /results/{key}"
+  route_key          = "GET /results/{key+}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
   target             = "integrations/${aws_apigatewayv2_integration.api.id}"

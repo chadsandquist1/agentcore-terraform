@@ -21,6 +21,14 @@
   cursor: progress;
 }
 
+.readOnly {
+  cursor: default;
+}
+
+.readOnly:hover {
+  background: transparent;
+}
+
 .inner {
   display: flex;
   flex-direction: column;

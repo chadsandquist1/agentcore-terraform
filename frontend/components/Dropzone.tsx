@@ -7,9 +7,10 @@ interface Props {
   onFile: (file: File) => void;
   isBusy: boolean;
   previewSrc?: string;
+  readOnly?: boolean;
 }
 
-export default function Dropzone({ onFile, isBusy, previewSrc }: Props) {
+export default function Dropzone({ onFile, isBusy, previewSrc, readOnly }: Props) {
   const [isOver, setIsOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -18,14 +19,15 @@ export default function Dropzone({ onFile, isBusy, previewSrc }: Props) {
     onFile(file);
   }, [onFile]);
 
-  const onDragOver = (e: DragEvent) => { e.preventDefault(); setIsOver(true); };
+  const onDragOver = (e: DragEvent) => { if (readOnly) return; e.preventDefault(); setIsOver(true); };
   const onDragLeave = () => setIsOver(false);
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setIsOver(false);
+    if (readOnly) return;
     handleFile(e.dataTransfer.files[0]);
   };
-  const onClick = () => { if (!isBusy) inputRef.current?.click(); };
+  const onClick = () => { if (isBusy || readOnly) return; inputRef.current?.click(); };
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
   };
@@ -34,14 +36,15 @@ export default function Dropzone({ onFile, isBusy, previewSrc }: Props) {
     styles.dropzone,
     isOver ? styles.isOver : '',
     isBusy ? styles.isBusy : '',
+    readOnly ? styles.readOnly : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div
       className={cls}
-      tabIndex={0}
-      role="button"
-      aria-label="Drop a receipt image or click to upload"
+      tabIndex={readOnly ? -1 : 0}
+      role={readOnly ? undefined : 'button'}
+      aria-label={readOnly ? undefined : 'Drop a receipt image or click to upload'}
       onClick={onClick}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}

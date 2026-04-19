@@ -38,10 +38,21 @@
   gap: 14px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s ease;
 }
 
 .row:last-child {
   border-bottom: none;
+}
+
+.row:hover {
+  background: var(--bg-soft);
+}
+
+.row.selected {
+  background: var(--accent-soft);
 }
 
 .thumb {
@@ -68,15 +79,41 @@
   text-overflow: ellipsis;
 }
 
-.sub {
+.time {
   font-size: 12px;
-  color: var(--ink-2);
-  line-height: 1.4;
+  color: var(--ink-3);
   margin-top: 2px;
 }
 
 .chipWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-top: 2px;
+}
+
+.deleteBtn {
+  display: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  padding: 3px 7px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  background: oklch(0.95 0.035 20);
+  border-color: oklch(0.55 0.12 20);
+  color: oklch(0.55 0.12 20);
+}
+
+.row:hover .deleteBtn {
+  display: inline-flex;
 }
 
 .empty {

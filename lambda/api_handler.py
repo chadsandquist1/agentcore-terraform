@@ -48,7 +48,7 @@ def handler(event, context):
         )
         return _ok({"uploadUrl": url, "key": key})
 
-    if route == "GET /results/{key}":
+    if route == "GET /results/{key+}":
         raw_key = event.get("pathParameters", {}).get("key", "")
         base = os.path.basename(raw_key).rsplit(".", 1)[0]
         prefix = f"results/{base}_"
