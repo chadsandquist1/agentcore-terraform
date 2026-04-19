@@ -1,0 +1,137 @@
+.dropzone {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropzone:hover {
+  background: oklch(0.96 0.004 80);
+}
+
+.isOver {
+  background: var(--accent-soft) !important;
+  outline: 2px dashed var(--accent);
+  outline-offset: -10px;
+}
+
+.isBusy {
+  cursor: progress;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+
+.placeholder {
+  width: 120px;
+  aspect-ratio: 3 / 4;
+  background: repeating-linear-gradient(
+    135deg,
+    oklch(0.93 0.004 80) 0 6px,
+    oklch(0.95 0.004 80) 6px 12px
+  );
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  position: relative;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.placeholder::before,
+.placeholder::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--bg-card) 50%
+    )
+    0 0 / 14px 8px repeat-x;
+}
+
+.placeholder::before {
+  top: 0;
+  transform: rotate(180deg);
+}
+
+.placeholder::after {
+  bottom: 0;
+}
+
+.label {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.label b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-soft);
+}
+
+.preview img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 36px -18px rgba(0, 0, 0, 0.2);
+}
+
+.scanning {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.scanPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--ink);
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.2);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.1s ease-in-out infinite;
+}

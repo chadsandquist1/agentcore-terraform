@@ -1,0 +1,40 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.swatch {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.neutral {
+  background: var(--bg-soft);
+  color: var(--ink-3);
+}
+.neutral .swatch { background: var(--ink-3); opacity: 0.5; }
+
+.groceries { background: var(--cat-groceries-bg); color: var(--cat-groceries-fg); }
+.groceries .swatch { background: var(--cat-groceries-fg); }
+
+.dining { background: var(--cat-dining-bg); color: var(--cat-dining-fg); }
+.dining .swatch { background: var(--cat-dining-fg); }
+
+.transport { background: var(--cat-transport-bg); color: var(--cat-transport-fg); }
+.transport .swatch { background: var(--cat-transport-fg); }
+
+.utilities { background: var(--cat-utilities-bg); color: var(--cat-utilities-fg); }
+.utilities .swatch { background: var(--cat-utilities-fg); }
+
+.retail { background: var(--cat-retail-bg); color: var(--cat-retail-fg); }
+.retail .swatch { background: var(--cat-retail-fg); }

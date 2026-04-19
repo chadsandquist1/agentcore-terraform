@@ -223,9 +223,9 @@ jobs:
       - name: Write env file
         run: |
           cat > frontend/.env.production <<EOF
-          VITE_API_URL=${{ needs.terraform-apply.outputs.api_url }}
-          VITE_COGNITO_USER_POOL_ID=us-east-1_jCtPXwqXV
-          VITE_COGNITO_CLIENT_ID=${{ needs.terraform-apply.outputs.cognito_client }}
+          NEXT_PUBLIC_API_URL=${{ needs.terraform-apply.outputs.api_url }}
+          NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_jCtPXwqXV
+          NEXT_PUBLIC_COGNITO_CLIENT_ID=${{ needs.terraform-apply.outputs.cognito_client }}
           EOF
 
       - name: Install dependencies
@@ -237,7 +237,7 @@ jobs:
         working-directory: frontend
 
       - name: Sync to S3
-        run: aws s3 sync frontend/dist/ s3://${{ needs.terraform-apply.outputs.cf_bucket }}/ --delete
+        run: aws s3 sync frontend/out/ s3://${{ needs.terraform-apply.outputs.cf_bucket }}/ --delete
 
       - name: Invalidate CloudFront
         run: |

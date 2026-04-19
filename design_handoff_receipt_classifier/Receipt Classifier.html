@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Receipt Classification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.985 0.003 80);
+    --bg-soft: oklch(0.965 0.004 80);
+    --bg-card: oklch(0.975 0.003 80);
+    --ink: oklch(0.22 0.01 80);
+    --ink-2: oklch(0.45 0.01 80);
+    --ink-3: oklch(0.62 0.008 80);
+    --line: oklch(0.92 0.004 80);
+    --line-2: oklch(0.88 0.005 80);
+    --accent: oklch(0.55 0.08 250);
+    --accent-soft: oklch(0.94 0.03 250);
+    --ok: oklch(0.6 0.11 150);
+    --ok-soft: oklch(0.95 0.04 150);
+    --warn: oklch(0.7 0.13 70);
+    --warn-soft: oklch(0.96 0.05 80);
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+    line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 72px 24px 120px;
+  }
+
+  /* --- Header --- */
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .logo {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    box-shadow: 0 1px 2px rgba(20,20,20,0.03), 0 6px 20px -12px rgba(20,20,20,0.12);
+  }
+  .logo svg { display: block; }
+  h1.title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 18px 0 4px;
+  }
+  .subtitle {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* --- Segmented tab --- */
+  .segmented {
+    margin: 28px auto 0;
+    display: inline-flex;
+    padding: 4px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    gap: 2px;
+  }
+  .seg {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-2);
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: -0.005em;
+  }
+  .seg[aria-selected="true"] {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(20,20,20,0.06), 0 0 0 1px var(--line);
+  }
+
+  /* --- Dropzone card --- */
+  .card {
+    margin-top: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .dropzone {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .dropzone:hover { background: oklch(0.96 0.004 80); }
+  .dropzone.is-over {
+    background: var(--accent-soft);
+    outline: 2px dashed var(--accent);
+    outline-offset: -10px;
+  }
+  .dropzone.is-busy { cursor: progress; }
+
+  .dz-inner {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; padding: 24px;
+  }
+  /* Abstract receipt placeholder (SVG with diagonal stripes) */
+  .receipt-placeholder {
+    width: 120px;
+    aspect-ratio: 3 / 4;
+    background:
+      repeating-linear-gradient(
+        135deg,
+        oklch(0.93 0.004 80) 0 6px,
+        oklch(0.95 0.004 80) 6px 12px
+      );
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  }
+  .receipt-placeholder::before,
+  .receipt-placeholder::after {
+    content: "";
+    position: absolute; left: 0; right: 0;
+    height: 8px;
+    background:
+      linear-gradient(135deg, transparent 50%, var(--bg-card) 50%) 0 0/14px 8px repeat-x;
+  }
+  .receipt-placeholder::before { top: 0; transform: rotate(180deg); }
+  .receipt-placeholder::after  { bottom: 0; }
+
+  .dz-label {
+    font-size: 13.5px;
+    color: var(--ink-2);
+  }
+  .dz-label b { color: var(--ink); font-weight: 600; }
+  .dz-hint {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Preview state */
+  .preview {
+    display: none;
+    position: absolute; inset: 0;
+    padding: 20px;
+    align-items: center; justify-content: center;
+    background: var(--bg-soft);
+  }
+  .preview img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 36px -18px rgba(0,0,0,0.2);
+  }
+
+  .dropzone.has-file .preview { display: flex; }
+  .dropzone.has-file .dz-inner { display: none; }
+
+  /* Spinner overlay */
+  .scanning {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .dropzone.is-busy .scanning { display: flex; }
+  .scan-pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--ink);
+    box-shadow: 0 10px 30px -14px rgba(0,0,0,0.2);
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .35; transform: scale(.85); }
+    50%      { opacity: 1;   transform: scale(1); }
+  }
+
+  /* Caption under card */
+  .caption {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    background: #fff;
+  }
+  .caption .left { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+  .caption .row1 { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .caption .fname {
+    font-size: 13px; color: var(--ink-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .caption .desc {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+  .caption .desc:empty { display: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    letter-spacing: -0.005em;
+  }
+  .chip .swatch {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .chip.empty {
+    background: var(--bg-soft);
+    color: var(--ink-3);
+  }
+  .chip.empty .swatch { background: var(--ink-3); opacity: 0.5; }
+
+  .btn-reset {
+    font: inherit; font-size: 12px;
+    background: transparent; border: 1px solid var(--line);
+    color: var(--ink-2);
+    padding: 4px 10px; border-radius: 999px;
+    cursor: pointer;
+  }
+  .btn-reset:hover { background: var(--bg-soft); color: var(--ink); }
+  .btn-reset[hidden] { display: none; }
+
+  /* --- History list --- */
+  .section-title {
+    margin: 48px 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .history {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    overflow: hidden;
+  }
+  .history:empty { display: none; }
+  .history li {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .history .chip { margin-top: 2px; }
+  .history li:last-child { border-bottom: 0; }
+  .thumb {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    background: var(--bg-soft) center/cover no-repeat;
+    border: 1px solid var(--line);
+  }
+  .meta { min-width: 0; }
+  .meta .name {
+    font-size: 13.5px; font-weight: 500; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .meta .sub {
+    font-size: 12.5px; color: var(--ink-2);
+    line-height: 1.4;
+    margin-top: 2px;
+    text-wrap: pretty;
+  }
+
+  .empty-state {
+    padding: 22px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-3);
+    border: 1px dashed var(--line-2);
+    border-radius: var(--radius);
+    background: transparent;
+  }
+
+  .footnote {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  /* Chip color variants by class */
+  .chip[data-cat="Groceries"]     { background: var(--ok-soft);     color: var(--ok); }
+  .chip[data-cat="Groceries"] .swatch { background: var(--ok); }
+  .chip[data-cat="Dining"]        { background: var(--warn-soft);   color: var(--warn); }
+  .chip[data-cat="Dining"] .swatch    { background: var(--warn); }
+  .chip[data-cat="Transport"]     { background: var(--accent-soft); color: var(--accent); }
+  .chip[data-cat="Transport"] .swatch { background: var(--accent); }
+  .chip[data-cat="Utilities"]     { background: oklch(0.95 0.035 300); color: oklch(0.5 0.1 300); }
+  .chip[data-cat="Utilities"] .swatch { background: oklch(0.5 0.1 300); }
+  .chip[data-cat="Retail"]        { background: oklch(0.95 0.035 20);  color: oklch(0.55 0.12 20); }
+  .chip[data-cat="Retail"] .swatch   { background: oklch(0.55 0.12 20); }
+</style>
+</head>
+<body>
+  <main class="page">
+
+    <header class="header">
+      <!-- Abstract receipt icon: simple rect + lines only -->
+      <div class="logo" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <rect x="6.5" y="3.5" width="13" height="19" rx="1.5"
+                stroke="oklch(0.22 0.01 80)" stroke-width="1.4" fill="#fff"/>
+          <line x1="9" y1="9"  x2="17" y2="9"  stroke="oklch(0.22 0.01 80)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="9" y1="12.5" x2="17" y2="12.5" stroke="oklch(0.45 0.01 80)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="9" y1="16" x2="14" y2="16" stroke="oklch(0.45 0.01 80)" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M6.5 22.5 L8.5 21 L10.5 22.5 L12.5 21 L14.5 22.5 L16.5 21 L18.5 22.5 L19.5 22.5"
+                stroke="oklch(0.22 0.01 80)" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+
+      <h1 class="title">Receipt Classification</h1>
+      <p class="subtitle">Please drop in an image of a receipt.</p>
+
+      <div class="segmented" role="tablist" aria-label="View">
+        <button class="seg" role="tab" aria-selected="true">Upload</button>
+      </div>
+    </header>
+
+    <!-- Drop card -->
+    <section class="card" aria-label="Upload receipt">
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drop a receipt image or click to upload">
+        <div class="dz-inner">
+          <div class="receipt-placeholder" aria-hidden="true"></div>
+          <div class="dz-label"><b>Drop a receipt</b> here, or <u>click to browse</u></div>
+          <div class="dz-hint">We'll return a category and a short description.</div>
+        </div>
+
+        <div class="preview" aria-hidden="true">
+          <img id="previewImg" alt="" />
+        </div>
+
+        <div class="scanning" aria-hidden="true">
+          <span class="scan-pill"><span class="dot"></span><span>Classifying receipt…</span></span>
+        </div>
+
+        <input id="fileInput" type="file" accept="image/*" hidden />
+      </div>
+
+      <div class="caption">
+        <div class="left">
+          <div class="row1">
+            <span id="chip" class="chip empty" data-cat=""><span class="swatch"></span><span id="chipText">Waiting for upload</span></span>
+            <span id="fname" class="fname mono"></span>
+          </div>
+          <div id="desc" class="desc"></div>
+        </div>
+        <button id="resetBtn" class="btn-reset" hidden>Clear</button>
+      </div>
+    </section>
+
+    <!-- History -->
+    <h2 class="section-title">
+      <span>Recent</span>
+      <span class="count" id="historyCount">0 items</span>
+    </h2>
+    <ul id="history" class="history" aria-live="polite"></ul>
+    <div id="empty" class="empty-state">No receipts yet. Your classified receipts will appear here.</div>
+
+    <p class="footnote mono">proof of concept · v0.1</p>
+  </main>
+
+<script>
+(() => {
+  const dz         = document.getElementById('dropzone');
+  const fileInput  = document.getElementById('fileInput');
+  const previewImg = document.getElementById('previewImg');
+  const chip       = document.getElementById('chip');
+  const chipText   = document.getElementById('chipText');
+  const fname      = document.getElementById('fname');
+  const desc       = document.getElementById('desc');
+  const resetBtn   = document.getElementById('resetBtn');
+  const history    = document.getElementById('history');
+  const empty      = document.getElementById('empty');
+  const historyCount = document.getElementById('historyCount');
+
+  const CATEGORIES = {
+    Groceries:  ['Weekly grocery run — produce, pantry staples, household items.',
+                 'Supermarket purchase covering food and kitchen essentials.',
+                 'Everyday grocery shop with fresh and packaged goods.'],
+    Dining:     ['Restaurant meal — food and beverages for on-site dining.',
+                 'Takeout or delivery order from a food vendor.',
+                 'Café or quick-service meal purchase.'],
+    Transport:  ['Rideshare or taxi fare for a short urban trip.',
+                 'Fuel purchase at a service station.',
+                 'Public transit or parking fee.'],
+    Utilities:  ['Monthly utility bill — electricity, gas, water or internet.',
+                 'Recurring service charge from a utility provider.',
+                 'Household service payment covering a billing period.'],
+    Retail:     ['General retail purchase — apparel or home goods.',
+                 'Specialty store purchase for personal items.',
+                 'Department store transaction across mixed categories.']
+  };
+
+  const state = { items: [] };
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderHistory() {
+    history.innerHTML = '';
+    state.items.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="thumb" style="background-image:url('${item.src}')"></div>
+        <div class="meta">
+          <div class="name">${escapeHtml(item.name)}</div>
+          <div class="sub">${escapeHtml(item.desc)}</div>
+        </div>
+        <span class="chip" data-cat="${item.cat}"><span class="swatch"></span>${item.cat}</span>
+      `;
+      history.appendChild(li);
+    });
+    const n = state.items.length;
+    historyCount.textContent = n === 1 ? '1 item' : `${n} items`;
+    empty.style.display = n ? 'none' : 'block';
+  }
+
+  function setChip(cat) {
+    if (!cat) {
+      chip.classList.add('empty');
+      chip.setAttribute('data-cat', '');
+      chipText.textContent = 'Waiting for upload';
+      return;
+    }
+    chip.classList.remove('empty');
+    chip.setAttribute('data-cat', cat);
+    chipText.textContent = cat;
+  }
+
+  function formatTime(d) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function mockClassify() {
+    // placeholder classifier — returns { category, description }.
+    const cats = Object.keys(CATEGORIES);
+    const cat  = cats[Math.floor(Math.random() * cats.length)];
+    const pool = CATEGORIES[cat];
+    const description = pool[Math.floor(Math.random() * pool.length)];
+    return { cat, description };
+  }
+
+  function reset() {
+    dz.classList.remove('has-file', 'is-busy');
+    previewImg.removeAttribute('src');
+    fname.textContent = '';
+    desc.textContent = '';
+    setChip(null);
+    resetBtn.hidden = true;
+    fileInput.value = '';
+  }
+
+  function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target.result;
+      previewImg.src = src;
+      dz.classList.add('has-file', 'is-busy');
+      fname.textContent = file.name;
+      desc.textContent = '';
+      setChip(null);
+      chipText.textContent = 'Classifying…';
+      chip.classList.remove('empty');
+      chip.setAttribute('data-cat', '');
+      resetBtn.hidden = false;
+
+      // Fake classify latency
+      setTimeout(() => {
+        const { cat, description } = mockClassify();
+        dz.classList.remove('is-busy');
+        setChip(cat);
+        desc.textContent = description;
+        state.items.unshift({
+          name: file.name,
+          cat,
+          desc: description,
+          src,
+          time: formatTime(new Date())
+        });
+        renderHistory();
+      }, 900 + Math.random() * 500);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // --- events ---
+  dz.addEventListener('click', (e) => {
+    if (dz.classList.contains('has-file')) return;
+    fileInput.click();
+  });
+  dz.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dz.classList.add('is-over');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dz.classList.remove('is-over');
+  }));
+  dz.addEventListener('drop', (e) => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleFile(file);
+  });
+
+  resetBtn.addEventListener('click', (e) => { e.stopPropagation(); reset(); });
+
+  renderHistory();
+})();
+</script>
+</body>
+</html>

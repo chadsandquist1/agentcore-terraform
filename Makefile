@@ -88,24 +88,24 @@ build-api:
 	@echo "Done: $(BUILD_DIR)/api_handler.zip"
 
 build-frontend:
-	@echo "Building frontend..."
+	@echo "Building Next.js frontend..."
 	$(eval API_URL := $(shell cd terraform && terraform output -raw api_url 2>/dev/null))
 	$(eval CLIENT_ID := $(shell cd terraform && terraform output -raw cognito_client_id 2>/dev/null))
 	@[ "$(API_URL)" ] || { echo "Run 'terraform apply' first to get outputs."; exit 1; }
-	@printf "VITE_API_URL=%s\nVITE_COGNITO_USER_POOL_ID=us-east-1_jCtPXwqXV\nVITE_COGNITO_CLIENT_ID=%s\n" \
+	@printf "NEXT_PUBLIC_API_URL=%s\nNEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_jCtPXwqXV\nNEXT_PUBLIC_COGNITO_CLIENT_ID=%s\n" \
 		"$(API_URL)" "$(CLIENT_ID)" > frontend/.env.production
-	cd frontend && npm install && npm run build
-	@echo "Done: frontend/dist/"
+	cd frontend && npm ci && npm run build
+	@echo "Done: frontend/out/"
 
 deploy-frontend: build-frontend
 	@echo "Deploying frontend to S3 + CloudFront..."
 	$(eval BUCKET := $(shell cd terraform && terraform output -raw frontend_bucket 2>/dev/null))
 	$(eval CF_ID := $(shell cd terraform && terraform output -raw cloudfront_distribution_id 2>/dev/null))
 	$(eval CF_URL := $(shell cd terraform && terraform output -raw cloudfront_url 2>/dev/null))
-	aws s3 sync frontend/dist/ s3://$(BUCKET)/ --delete
+	aws s3 sync frontend/out/ s3://$(BUCKET)/ --delete
 	aws cloudfront create-invalidation --distribution-id $(CF_ID) --paths "/*" --output text
 	@echo ""
 	@echo "Frontend live at: $(CF_URL)"
 
 clean:
-	rm -rf $(LAYER_BUILD) $(AGENT_BUILD) $(BUILD_DIR) frontend/dist frontend/.env.production
+	rm -rf $(LAYER_BUILD) $(AGENT_BUILD) $(BUILD_DIR) frontend/out frontend/.env.production

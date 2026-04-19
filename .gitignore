@@ -16,6 +16,15 @@ build/
 lambda/layer/
 agent/build/
 
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.production
+frontend/.env.local
+frontend/tsconfig.tsbuildinfo
+frontend/*.tsbuildinfo
+
 # Python
 __pycache__/
 *.pyc

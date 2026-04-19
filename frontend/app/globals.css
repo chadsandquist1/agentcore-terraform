@@ -1,0 +1,53 @@
+:root {
+  --bg:        oklch(0.985 0.003 80);
+  --bg-soft:   oklch(0.965 0.004 80);
+  --bg-card:   oklch(0.975 0.003 80);
+  --ink:       oklch(0.22 0.01 80);
+  --ink-2:     oklch(0.45 0.01 80);
+  --ink-3:     oklch(0.62 0.008 80);
+  --line:      oklch(0.92 0.004 80);
+  --line-2:    oklch(0.88 0.005 80);
+
+  --accent:      oklch(0.55 0.08 250);
+  --accent-soft: oklch(0.94 0.03 250);
+
+  --ok:      oklch(0.6  0.11 150);
+  --ok-soft: oklch(0.95 0.04 150);
+  --warn:    oklch(0.7  0.13 70);
+  --warn-soft: oklch(0.96 0.05 80);
+
+  /* category color pairs */
+  --cat-groceries-bg: oklch(0.95 0.04 150);
+  --cat-groceries-fg: oklch(0.6 0.11 150);
+  --cat-dining-bg:    oklch(0.96 0.05 80);
+  --cat-dining-fg:    oklch(0.7 0.13 70);
+  --cat-transport-bg: oklch(0.94 0.03 250);
+  --cat-transport-fg: oklch(0.55 0.08 250);
+  --cat-utilities-bg: oklch(0.95 0.035 300);
+  --cat-utilities-fg: oklch(0.5 0.1 300);
+  --cat-retail-bg:    oklch(0.95 0.035 20);
+  --cat-retail-fg:    oklch(0.55 0.12 20);
+  --cat-neutral-bg:   var(--bg-soft);
+  --cat-neutral-fg:   var(--ink-3);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01', 'cv11';
+  line-height: 1.5;
+}
+
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%       { opacity: 1;   transform: scale(1); }
+}
