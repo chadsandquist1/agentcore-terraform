@@ -1,5 +1,15 @@
 import type { ColorGroup } from '@/types';
 
+export const ALL_CATEGORIES: string[] = [
+  'Groceries', 'Restaurant', 'Fast Food', 'Coffee & Cafe',
+  'Health & Pharmacy', 'Fitness & Sports', 'Pet Supplies', 'Childcare & Education',
+  'Alcohol & Bar', 'Entertainment', 'Gifts & Flowers',
+  'Auto & Gas', 'Travel & Lodging', 'Utilities & Subscriptions',
+  'Electronics', 'Home & Hardware', 'Furniture & Appliances', 'Office & Stationery',
+  'Clothing & Apparel', 'Shoes & Footwear', 'Beauty & Personal Care', 'Charity & Donations',
+  'Not able to classify', 'Not Receipt',
+];
+
 const MAP: Record<string, ColorGroup> = {
   'Groceries':              'groceries',
   'Restaurant':             'groceries',

@@ -5,8 +5,10 @@ import Logo from '@/components/Logo';
 import Dropzone from '@/components/Dropzone';
 import Chip from '@/components/Chip';
 import HistoryList from '@/components/HistoryList';
+import CategoryGrid from '@/components/CategoryGrid';
 import { presign, uploadFile, pollResult } from '@/lib/api';
 import { loadItems, saveItems } from '@/lib/storage';
+import { makeThumbnail } from '@/lib/thumbnail';
 import type { Item } from '@/types';
 import styles from './upload.module.css';
 
@@ -29,6 +31,9 @@ export default function UploadPage() {
 
   // history viewing state
   const [viewingItem, setViewingItem] = useState<Item | null>(null);
+
+  // tab state
+  const [tab, setTab] = useState<'upload' | 'categories'>('upload');
 
   useEffect(() => {
     setItems(loadItems());
@@ -73,12 +78,14 @@ export default function UploadPage() {
         setClassifying(false);
         setIsBusy(false);
 
+        // thumbnail for localStorage (full src stays in React state for dropzone)
+        const thumb = await makeThumbnail(src);
         const item: Item = {
           key,
           name: file.name,
           categories: cats,
           reasoning,
-          src,
+          src: thumb,
           time: formatTime(new Date()),
         };
         setItems(prev => {
@@ -128,44 +135,65 @@ export default function UploadPage() {
         <h1 className={styles.title}>Receipt Classification</h1>
         <p className={styles.subtitle}>Please drop in an image of a receipt.</p>
         <div className={styles.segmented} role="tablist" aria-label="View">
-          <button className={styles.seg} role="tab" aria-selected={true}>Upload</button>
+          <button
+            className={styles.seg}
+            role="tab"
+            aria-selected={tab === 'upload'}
+            style={tab !== 'upload' ? { background: 'transparent', boxShadow: 'none', color: 'var(--ink-2)' } : undefined}
+            onClick={() => setTab('upload')}
+          >
+            Upload
+          </button>
+          <button
+            className={styles.seg}
+            role="tab"
+            aria-selected={tab === 'categories'}
+            style={tab !== 'categories' ? { background: 'transparent', boxShadow: 'none', color: 'var(--ink-2)' } : undefined}
+            onClick={() => setTab('categories')}
+          >
+            Categories
+          </button>
         </div>
       </header>
 
-      <section className={styles.card} aria-label="Upload receipt">
-        <Dropzone
-          onFile={handleFile}
-          isBusy={isBusy}
-          previewSrc={displaySrc}
-          readOnly={!!viewingItem}
-        />
+      {tab === 'upload' && (
+        <section className={styles.card} aria-label="Upload receipt">
+          <Dropzone
+            onFile={handleFile}
+            isBusy={isBusy}
+            previewSrc={displaySrc}
+            readOnly={!!viewingItem}
+          />
 
-        <div className={styles.caption}>
-          <div className={styles.captionLeft}>
-            <div className={styles.captionRow} aria-live="polite">
-              {isClassifying ? (
-                <Chip empty label="Classifying…" />
-              ) : displayCategories.length > 0 ? (
-                displayCategories.map(cat => <Chip key={cat} category={cat} />)
-              ) : (
-                <Chip empty />
-              )}
-              {displayFile && (
-                <span className={`${styles.fname} mono`}>{displayFile}</span>
+          <div className={styles.caption}>
+            <div className={styles.captionLeft}>
+              <div className={styles.captionRow} aria-live="polite">
+                {isClassifying ? (
+                  <Chip empty label="Classifying…" />
+                ) : displayCategories.length > 0 ? (
+                  displayCategories.map(cat => <Chip key={cat} category={cat} />)
+                ) : (
+                  <Chip empty />
+                )}
+                {displayFile && (
+                  <span className={`${styles.fname} mono`}>{displayFile}</span>
+                )}
+              </div>
+              {displayReasoning && (
+                <div className={styles.desc}>{displayReasoning}</div>
               )}
             </div>
-            {displayReasoning && (
-              <div className={styles.desc}>{displayReasoning}</div>
-            )}
-          </div>
 
-          {viewingItem ? (
-            <button className={styles.btnBack} onClick={handleBack}>← Back</button>
-          ) : hasFile ? (
-            <button className={styles.btnClear} onClick={reset}>Clear</button>
-          ) : null}
-        </div>
-      </section>
+            {viewingItem ? (
+              <button className={styles.btnBack} onClick={handleBack}>← Back</button>
+            ) : hasFile ? (
+              <button className={styles.btnClear} onClick={reset}>Clear</button>
+            ) : null}
+          </div>
+        </section>
+      )}
+
+      {tab === 'categories' && <CategoryGrid items={items} />}
 
       <HistoryList
         items={items}
