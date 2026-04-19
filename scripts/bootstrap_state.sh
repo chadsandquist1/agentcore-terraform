@@ -174,6 +174,36 @@ PERMISSIONS_POLICY=$(cat <<EOF
       "Effect": "Allow",
       "Action": ["bedrock-agentcore:*"],
       "Resource": "*"
+    },
+    {
+      "Sid": "CloudFront",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateDistribution", "cloudfront:DeleteDistribution",
+        "cloudfront:GetDistribution", "cloudfront:UpdateDistribution",
+        "cloudfront:TagResource", "cloudfront:ListTagsForResource",
+        "cloudfront:CreateInvalidation", "cloudfront:GetInvalidation",
+        "cloudfront:CreateOriginAccessControl", "cloudfront:DeleteOriginAccessControl",
+        "cloudfront:GetOriginAccessControl", "cloudfront:UpdateOriginAccessControl",
+        "cloudfront:ListOriginAccessControls"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Cognito",
+      "Effect": "Allow",
+      "Action": [
+        "cognito-idp:CreateUserPoolClient", "cognito-idp:DeleteUserPoolClient",
+        "cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient",
+        "cognito-idp:DescribeUserPool", "cognito-idp:ListUserPoolClients"
+      ],
+      "Resource": "arn:aws:cognito-idp:${REGION}:${ACCOUNT_ID}:userpool/*"
+    },
+    {
+      "Sid": "ApiGateway",
+      "Effect": "Allow",
+      "Action": ["apigateway:*"],
+      "Resource": "arn:aws:apigateway:${REGION}::/*"
     }
   ]
 }

@@ -10,6 +10,17 @@ resource "aws_s3_bucket_public_access_block" "input" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_cors_configuration" "input" {
+  bucket = aws_s3_bucket.input.id
+
+  cors_rule {
+    allowed_headers = ["content-type", "x-amz-*"]
+    allowed_methods = ["PUT"]
+    allowed_origins = ["https://${aws_cloudfront_distribution.frontend.domain_name}"]
+    max_age_seconds = 300
+  }
+}
+
 resource "aws_s3_bucket" "output" {
   bucket = "${local.bucket_prefix}-output"
 }

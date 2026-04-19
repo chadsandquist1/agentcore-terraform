@@ -18,17 +18,33 @@ output "lambda_function_arn" {
   value       = aws_lambda_function.processor.arn
 }
 
-output "agentcore_runtime_arn" {
-  description = "ARN of the AgentCore Runtime (deployed idle)"
-  value       = aws_bedrockagentcore_agent_runtime.receipt_classifier.agent_runtime_arn
-}
-
-output "agentcore_runtime_id" {
-  description = "ID of the AgentCore Runtime"
-  value       = aws_bedrockagentcore_agent_runtime.receipt_classifier.agent_runtime_id
-}
 
 output "cloudwatch_log_group" {
   description = "CloudWatch log group for Lambda classification events"
   value       = aws_cloudwatch_log_group.lambda.name
+}
+
+output "api_url" {
+  description = "API Gateway base URL"
+  value       = aws_apigatewayv2_stage.default.invoke_url
+}
+
+output "cognito_client_id" {
+  description = "Cognito User Pool Client ID for the receipt classifier"
+  value       = aws_cognito_user_pool_client.receipt_classifier.id
+}
+
+output "cloudfront_url" {
+  description = "CloudFront HTTPS URL for the frontend"
+  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID (for cache invalidation)"
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "frontend_bucket" {
+  description = "S3 bucket for frontend assets"
+  value       = aws_s3_bucket.frontend.bucket
 }

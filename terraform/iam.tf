@@ -74,6 +74,58 @@ resource "aws_iam_role_policy" "lambda" {
 }
 
 ###############################################################################
+# API Lambda execution role
+###############################################################################
+
+data "aws_iam_policy_document" "api_lambda_assume" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "api_lambda" {
+  name               = "${var.prefix}-api-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.api_lambda_assume.json
+}
+
+data "aws_iam_policy_document" "api_lambda_permissions" {
+  statement {
+    sid     = "Logs"
+    effect  = "Allow"
+    actions = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.prefix}-api:*"]
+  }
+
+  statement {
+    sid     = "S3Presign"
+    effect  = "Allow"
+    actions = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.input.arn}/*"]
+  }
+
+  statement {
+    sid     = "S3Results"
+    effect  = "Allow"
+    actions = ["s3:ListBucket", "s3:GetObject"]
+    resources = [
+      aws_s3_bucket.output.arn,
+      "${aws_s3_bucket.output.arn}/*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "api_lambda" {
+  name   = "${var.prefix}-api-lambda-policy"
+  role   = aws_iam_role.api_lambda.id
+  policy = data.aws_iam_policy_document.api_lambda_permissions.json
+}
+
+###############################################################################
 # AgentCore execution role
 ###############################################################################
 

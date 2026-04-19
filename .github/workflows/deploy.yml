@@ -12,9 +12,10 @@ permissions:
   id-token: write
 
 env:
-  TF_VERSION: "1.10.5"
-  AWS_REGION: "us-east-1"
+  TF_VERSION:     "1.10.5"
+  AWS_REGION:     "us-east-1"
   PYTHON_VERSION: "3.12"
+  NODE_VERSION:   "20"
 
 jobs:
   secret-scan:
@@ -46,7 +47,7 @@ jobs:
       - name: Generate lock file
         run: uv lock --check
 
-      - name: Build Lambda layer and AgentCore agent
+      - name: Build Lambda layer, AgentCore agent, and API handler
         run: make build
 
       - name: Upload build artifacts
@@ -56,6 +57,7 @@ jobs:
           path: |
             build/lambda_layer.zip
             build/agent.zip
+            build/api_handler.zip
           retention-days: 1
 
   terraform-plan:
@@ -152,6 +154,12 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      api_url:        ${{ steps.outputs.outputs.api_url }}
+      cognito_client: ${{ steps.outputs.outputs.cognito_client }}
+      cf_bucket:      ${{ steps.outputs.outputs.cf_bucket }}
+      cf_dist_id:     ${{ steps.outputs.outputs.cf_dist_id }}
+      cf_url:         ${{ steps.outputs.outputs.cf_url }}
     defaults:
       run:
         working-directory: terraform
@@ -174,9 +182,66 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Terraform Init
         run: terraform init -input=false
 
       - name: Terraform Apply
         run: terraform plan -input=false -out=tfplan && terraform apply -auto-approve -input=false tfplan
+
+      - name: Capture Terraform outputs
+        id: outputs
+        run: |
+          echo "api_url=$(terraform output -raw api_url)"         >> "$GITHUB_OUTPUT"
+          echo "cognito_client=$(terraform output -raw cognito_client_id)" >> "$GITHUB_OUTPUT"
+          echo "cf_bucket=$(terraform output -raw frontend_bucket)"       >> "$GITHUB_OUTPUT"
+          echo "cf_dist_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+          echo "cf_url=$(terraform output -raw cloudfront_url)"           >> "$GITHUB_OUTPUT"
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: terraform-apply
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Write env file
+        run: |
+          cat > frontend/.env.production <<EOF
+          VITE_API_URL=${{ needs.terraform-apply.outputs.api_url }}
+          VITE_COGNITO_USER_POOL_ID=us-east-1_jCtPXwqXV
+          VITE_COGNITO_CLIENT_ID=${{ needs.terraform-apply.outputs.cognito_client }}
+          EOF
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+
+      - name: Sync to S3
+        run: aws s3 sync frontend/dist/ s3://${{ needs.terraform-apply.outputs.cf_bucket }}/ --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.terraform-apply.outputs.cf_dist_id }} \
+            --paths "/*"
+          echo "Frontend live at: ${{ needs.terraform-apply.outputs.cf_url }}"
