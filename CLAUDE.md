@@ -12,10 +12,14 @@ Serverless AWS pipeline that classifies receipt images via OCR. JPG uploaded to 
 - **Terraform >= 1.0, AWS provider >= 6.22.0** — all infra as code
 - **GitHub Actions** — CI/CD (build artifacts → terraform apply)
 
+## Infrastructure Rule
+
+**All AWS resource changes must go through Terraform.** Never use one-off AWS CLI commands or scripts to create or update resources. The only exception is `scripts/bootstrap_state.sh`, which creates the S3 state bucket and DynamoDB lock table — the two resources that must exist before Terraform can initialize. Everything else, including the GitHub Actions OIDC provider, role, and policy, is managed in `terraform/github_actions.tf`.
+
 ## Commands
 
 ```bash
-# First-time setup (run once before terraform init)
+# First-time setup (run once before terraform init — creates S3 state + DynamoDB only)
 chmod +x scripts/bootstrap_state.sh && ./scripts/bootstrap_state.sh
 
 # Build Lambda layer (x86_64) + AgentCore zip (ARM64) — required before terraform
